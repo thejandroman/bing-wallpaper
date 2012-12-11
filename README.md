@@ -5,6 +5,9 @@ Information
 -----------
 A script which downloads the latest picture of the day from Bing.com and saves it to a directory.
 
+重要：这个分支适用于 [cn.bing.com](http://cn.bing.com).
+
+
 [Blog entry](http://blog.ideasftw.com/bing-desktop-for-mac)
 
 How to use?
