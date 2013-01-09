@@ -18,11 +18,13 @@ function dlWallpaper(){
     urls=( $(curl -b "$cookie" -s "$bingUrl"|grep -Eo "url:'[^']*'"|sed -e "s/url:\'\([^']*\)\'/\1/"|sed -e "s/\\\//g") )
     for p in ${urls[@]}; do
         filename=$(echo $p|sed -e "s/.*%2f\(.\)/\1/")
+        filename=$(echo $filename|sed -e "s/.*\/az\/hprichbg\/rb\/\(.\)/\1/")
         if [ ! -f $PICTURE_DIR/$filename ]; then
             if [[ "$p" != http://* ]]; then
                 p="$bingUrl$p"
             fi
             echo "Downloading: $filename ..."
+            echo "URL: $p"
             #wget -q -O $PICTURE_DIR/$filename $p
             curl -Lo "$PICTURE_DIR/$filename" $p
         else
