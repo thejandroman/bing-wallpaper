@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
+# no repeat pic in all language.
+no_repeat="TRUE"
 
 mkdir -p $PICTURE_DIR
 
@@ -19,6 +21,10 @@ function dlWallpaper(){
     for p in ${urls[@]}; do
         filename=$(echo $p|sed -e "s/.*%2f\(.\)/\1/")
         filename=$(echo $filename|sed -e "s/.*\/az\/hprichbg\/rb\/\(.\)/\1/")
+        if [[ "$no_repeat" = "TRUE" ]]; then
+            # replace language flag like EN-US, ZH-CN...
+            filename=$(echo $filename|sed -e "s/\([^_]*\)_[^_]*_\(.*\)/\1_\2/")
+        fi
         if [ ! -f $PICTURE_DIR/$filename ]; then
             if [[ "$p" != http://* ]]; then
                 p="$bingUrl$p"
