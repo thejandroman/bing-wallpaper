@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
+PICTURE_DIR="$HOME/Pictures/bing-wallpapers"
 # no repeat pic in all language.
 no_repeat="TRUE"
 
@@ -30,11 +30,12 @@ function dlWallpaper(){
                 p="$bingUrl$p"
             fi
             echo "Downloading: $filename ..."
-            echo "URL: $p"
+            ## debug.
+            #echo "Picture URL: $p"
             #wget -q -O $PICTURE_DIR/$filename $p
             curl -Lo "$PICTURE_DIR/$filename" $p
         else
-            echo "Skipping: $filename ."
+            echo "Skipped: $filename"
         fi
     done
 }
