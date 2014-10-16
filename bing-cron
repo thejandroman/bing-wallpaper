@@ -1,2 +1,0 @@
-#min hour mday month wday command
-0 10 * * * bash $HOME/Pictures/bing-wallpaper.sh 
