@@ -4,7 +4,7 @@ PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
 
 mkdir -p $PICTURE_DIR
 
-urls=( $(curl -s http://www.bing.com | \
+urls=( $(curl -s http://www.bing.com -b '_FS=NU=1&mkt=en-us&ui=#en-us' | \
     grep -Eo "url:'.*?'" | \
     sed -e "s/url:'\([^']*\)'.*/http:\/\/bing.com\1/" | \
     sed -e "s/\\\//g") )
