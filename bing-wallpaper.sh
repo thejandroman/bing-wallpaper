@@ -115,5 +115,5 @@ for p in "${urls[@]}"; do
 done
 
 if [ $SET_WALLPAPER ]; then
-	/usr/bin/sqlite3 $HOME/Library/Application\ Support/Dock/desktoppicture.db "update data set value = '$PICTURE_DIR/$filename'" && killall Dock
+	/usr/bin/sqlite3 $"$HOME"/Library/Application\ Support/Dock/desktoppicture.db "update data set value = '$PICTURE_DIR/$filename'" && killall Dock
 fi
