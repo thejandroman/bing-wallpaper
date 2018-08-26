@@ -133,7 +133,5 @@ for p in "${urls[@]}"; do
 done
 
 if [ $SET_WALLPAPER ]; then
-    /usr/bin/osascript<<END
-tell application "System Events" to set picture of every desktop to ("$PICTURE_DIR/$filename" as POSIX file as alias)
-END
+	/usr/bin/sqlite3 $"$HOME"/Library/Application\ Support/Dock/desktoppicture.db "update data set value = '$PICTURE_DIR/$filename'" && killall Dock
 fi
