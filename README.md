@@ -12,12 +12,13 @@ The script was tested on:
 
 - Mac OS X 10.8 - 10.12
 - Ubuntu 12.04 - 16.04
+- Fedora 28
 
 How to use?
 -----------
 * Just run the **bing-wallpaper.sh** script from the terminal. The script will
 download today's bing image.
-* To see available options run the sript with the `--help` flag:
+* To see available options run the script with the `--help` flag:
 
 ```
 $ ./bing-wallpaper.sh --help
@@ -39,7 +40,7 @@ Options:
                                  [default: $HOME/Pictures/bing-wallpapers/]
   -r --resolution <resolution>   The resolution of the image to retrieve.
                                  Supported resolutions: 1920x1200 1920x1080 800x480 400x240
-  -w --set-wallpaper             Set downloaded picture as wallpaper (Only mac support for now).
+  -w --set-wallpaper             Set downloaded picture as wallpaper.
   -h --help                      Show this screen.
   --version                      Show version.
 ```
