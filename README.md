@@ -114,36 +114,6 @@ change your wallpaper more than once per day, in which case you should look at
 the [Desk Changer
 extension](https://extensions.gnome.org/extension/1131/desk-changer/)
 
-### cron (legacy)
-
-**TL;DR:**
-
-* To install Gnome background slideshow, in the terminal run:
-
-  ```
-  $ git clone git@github.com:thejandroman/bing-wallpaper.git
-  $ bing-wallpaper/Tools/gnome-bing-slideshow/deploy-gnome-settings.sh
-  ```
-
-* Register `bing-wallpaper/bing-random-pic.sh` to run regularly.
-
-* Change the background properties to use the new slideshow.
-
-**How to register bing-wallpaper.sh or bing-random-pic.sh to run regularly.**
-
-There are two ways to run the scipts regularly: cron jobs and startup
-applications.
-
-* Cron jobs:
-  * Change the path of **bing-wallpaper.sh** in **Tools/bing-cron** to the
-    desired script location. If left unchanged the default value is
-    **~/Pictures/bing-wallpaper.sh**.
-  * From the terminal run `crontab /path/to/bing-cron` to setup the cronjob.
-
-* Startup programs:
-  * From HUD, search for startup applications.
-  * Add **bing-random-pic.sh** or **bing-wallpaper.sh**.
-
 ## References
 
 * https://major.io/2015/02/11/rotate-gnome-3s-wallpaper-systemd-user-units-timers/
