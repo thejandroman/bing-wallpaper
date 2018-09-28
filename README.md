@@ -1,10 +1,9 @@
 [![Build Status](https://travis-ci.org/thejandroman/bing-wallpaper.svg?branch=travis)](https://travis-ci.org/thejandroman/bing-wallpaper)
 
-Bing Wallpaper for Mac and Ubuntu
-=================================
+# Bing Wallpaper for Mac and Ubuntu
 
-Information
------------
+## Information
+
 A script which downloads the latest picture of the day from Bing.com and saves
 it to a directory.
 
@@ -14,10 +13,10 @@ The script was tested on:
 - Ubuntu 12.04 - 16.04
 - Fedora 28
 
-How to use?
------------
+## How to use?
+
 * Just run the **bing-wallpaper.sh** script from the terminal. The script will
-download today's bing image.
+  download today's bing image.
 * To see available options run the script with the `--help` flag:
 
 ```
@@ -45,28 +44,28 @@ Options:
   --version                      Show version.
 ```
 
-Configuration on Mac
---------------------
+## Configuration on Mac
+
 * Open Mac's `System Preferences` -> `Desktop & Screensaver`, add the wallpaper
-directory, and configure to taste.
+  directory, and configure to taste.
 
 * To have the script run everyday automatically you will need to setup
-launchd. I have provided a sample plist file, found in the Tools
-directory, which can be copied to **$HOME/Library/LaunchAgents** and
-loaded with the command `launchctl load
-$HOME/Library/LaunchAgents/com.ideasftw.bing-wallpaper.plist`. Modify
-the plist as needed to point to **bing-wallpaper.sh**.
+  launchd. I have provided a sample plist file, found in the Tools directory,
+  which can be copied to **$HOME/Library/LaunchAgents** and loaded with the
+  command `launchctl load
+  $HOME/Library/LaunchAgents/com.ideasftw.bing-wallpaper.plist`. Modify the
+  plist as needed to point to **bing-wallpaper.sh**.
 
-Configuration on Ubuntu
------------------------
+## Configuration on Ubuntu
+
 **TL;DR:**
 
 * To install Gnome background slideshow, in the terminal run:
 
-```
-$ git clone git@github.com:thejandroman/bing-wallpaper.git
-$ bing-wallpaper/Tools/gnome-bing-slideshow/deploy-gnome-settings.sh
-```
+  ```
+  $ git clone git@github.com:thejandroman/bing-wallpaper.git
+  $ bing-wallpaper/Tools/gnome-bing-slideshow/deploy-gnome-settings.sh
+  ```
 
 * Register `bing-wallpaper/bing-random-pic.sh` to run regularly.
 
@@ -76,11 +75,13 @@ $ bing-wallpaper/Tools/gnome-bing-slideshow/deploy-gnome-settings.sh
 
 There are two ways to run the scipts regularly: cron jobs and startup
 applications.
+
 * Cron jobs:
   * Change the path of **bing-wallpaper.sh** in **Tools/bing-cron** to the
     desired script location. If left unchanged the default value is
     **~/Pictures/bing-wallpaper.sh**.
   * From the terminal run `crontab /path/to/bing-cron` to setup the cronjob.
+
 * Startup programs:
   * From HUD, search for startup applications.
   * Add **bing-random-pic.sh** or **bing-wallpaper.sh**.
