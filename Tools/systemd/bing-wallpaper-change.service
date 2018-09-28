@@ -1,0 +1,10 @@
+[Unit]
+Description=Download Bing's photo of the day and apply it as the background
+
+[Service]
+Type=oneshot
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/bash ${home}/bin/bing-wallpaper -p ${home}/Pictures/Wallpapers/ -w -q
+
+[Install]
+WantedBy=basic.target

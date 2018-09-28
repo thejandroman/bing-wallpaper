@@ -56,7 +56,65 @@ Options:
   $HOME/Library/LaunchAgents/com.ideasftw.bing-wallpaper.plist`. Modify the
   plist as needed to point to **bing-wallpaper.sh**.
 
-## Configuration on Ubuntu
+## Configuration on Linux
+
+**NOTE** These methods are only supported on Gnome.
+
+### systemd
+
+The systemd unit files provided will download the latest image from Bing every
+day and configure this as your wallpaper.
+
+1. Clone the repo:
+
+   ```
+   $ git clone https://github.com/thejandroman/bing-wallpaper
+   ```
+
+2. Copy the ``bing-wallpaper.sh`` to ``~/bin``:
+
+   ```
+   $ mkdir -p ~/bin
+   $ cp bing-wallpaper/bing-wallpaper.sh ~/bin
+   ```
+
+3. Update the systemd unit files to reference your home directory:
+
+   ```
+   sed -e 's@\${home}@'"$HOME"'@' Tools/systemd/bing-wallpaper-change.service -i
+   ```
+
+   (tl;dr: This uses `sed` to substitute the `${home}` token with your actual
+   home directory)
+
+3. Copy the (modified) systemd unit files to ``~/.config/systemd/user``:
+
+   ```
+   $ mkdir -p ~/.config/systemd/user
+   $ cp bing-wallpaper/systemd/* ~/.config/systemd/user
+   ```
+
+4. Enable the systemd unit files:
+
+   ```
+   $ systemctl --user enable bing-wallpaper-change.timer
+   $ systemctl --user start bing-wallpaper-change.timer
+   ```
+
+5. Verify that the timer is loaded
+
+   ```
+   $ systemctl --user list-timers
+   ```
+
+6. Profit $$$
+
+All images will be downloaded to `~/Pictures/Wallpaper`. You may wish to
+change your wallpaper more than once per day, in which case you should look at
+the [Desk Changer
+extension](https://extensions.gnome.org/extension/1131/desk-changer/)
+
+### cron (legacy)
 
 **TL;DR:**
 
@@ -85,3 +143,7 @@ applications.
 * Startup programs:
   * From HUD, search for startup applications.
   * Add **bing-random-pic.sh** or **bing-wallpaper.sh**.
+
+## References
+
+* https://major.io/2015/02/11/rotate-gnome-3s-wallpaper-systemd-user-units-timers/
