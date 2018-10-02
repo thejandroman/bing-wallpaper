@@ -1,0 +1,10 @@
+[Unit]
+Description=Timer for bing-wallpaper-change service
+
+[Timer]
+OnCalendar=*-*-* 09:30:00
+Persistent=true
+Unit=bing-wallpaper-change.service
+
+[Install]
+WantedBy=timers.target

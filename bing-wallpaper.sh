@@ -25,7 +25,7 @@ Options:
                                  [default: $HOME/Pictures/bing-wallpapers/]
   -r --resolution <resolution>   The resolution of the image to retrieve.
                                  Supported resolutions: ${RESOLUTIONS[*]}
-  -w --set-wallpaper             Set downloaded picture as wallpaper (Only mac support for now).
+  -w --set-wallpaper             Set downloaded picture as wallpaper.
   -h --help                      Show this screen.
   --version                      Show version.
 EOF
@@ -133,7 +133,17 @@ for p in "${urls[@]}"; do
 done
 
 if [ $SET_WALLPAPER ]; then
-    /usr/bin/osascript<<END
+    if [ "$(uname)" == "Darwin" ]; then
+        /usr/bin/osascript<<END
 tell application "System Events" to set picture of every desktop to ("$PICTURE_DIR/$filename" as POSIX file as alias)
 END
+    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        if [ "$DESKTOP_SESSION" == "gnome" ]; then
+            DISPLAY=:0 GSETTINGS_BACKEND=dconf gsettings set org.gnome.desktop.background picture-uri '"file://'$PICTURE_DIR/$filename'"'
+        else
+            print_message "Only Gnome currently supported on Linux"
+        fi
+    else
+        print_message "Only MacOS and Linux currently supported"
+    fi
 fi
