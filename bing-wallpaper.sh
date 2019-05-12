@@ -38,13 +38,14 @@ print_message() {
 }
 
 transform_urls() {
+    sed -e 's#\\u0026#\&#g' | \
     sed -e "s/\\\//g" | \
         sed -e "s/[[:digit:]]\{1,\}x[[:digit:]]\{1,\}/$RESOLUTION/" | \
         tr "\n" " "
 }
 
 # Defaults
-PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
+PICTURE_DIR="$HOME/Pictures/bing-wallpapers"
 RESOLUTION="1920x1080"
 
 # Option parsing
@@ -105,13 +106,13 @@ done
 mkdir -p "${PICTURE_DIR}"
 
 # Parse bing.com and acquire picture URL(s)
-read -ra urls < <(curl -sL $PROTO://www.bing.com | \
-    grep -Eo "url:'.*?'" | \
-    sed -e "s/url:'\([^']*\)'.*/$PROTO:\/\/bing.com\1/" | \
+urls=$(curl -sL $PROTO://www.bing.com | \
+    grep -Eo 'url:".*?"' | \
+    sed -e "s/url:\"\([^']*\)\".*/$PROTO:\/\/bing.com\1/" | \
     transform_urls)
 
 if [ -n "$BOOST" ]; then
-    read -ra archiveUrls < <(curl -sL "$PROTO://www.bing.com/HPImageArchive.aspx?format=js&n=$BOOST" | \
+    archiveUrls=$(curl -sL "$PROTO://www.bing.com/HPImageArchive.aspx?format=js&n=$BOOST" | \
         grep -Eo "url\":\".*?\"" | \
         sed -e "s/url\":\"\([^\"]*\)\"/$PROTO:\/\/bing.com\1/" | \
         transform_urls)
