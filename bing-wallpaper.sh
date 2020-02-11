@@ -3,7 +3,7 @@
 
 readonly SCRIPT=$(basename "$0")
 readonly VERSION='0.4.0'
-readonly RESOLUTIONS=(1920x1200 1920x1080 800x480 400x240)
+readonly RESOLUTIONS=(1920x1080 800x480 400x240)
 
 usage() {
 cat <<EOF
