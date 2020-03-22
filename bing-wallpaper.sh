@@ -9,6 +9,12 @@ readonly VERSION='0.4.0'
 readonly RESOLUTIONS=(1920x1200 1920x1080 1366x768 800x480 400x240)
 RESOLUTION="${RESOLUTIONS[2]}"
 
+on_failure()
+{
+    echo "Some error occured!" 1>&2
+}
+trap on_failure ERR
+
 usage() {
 cat <<EOF
 Usage:
