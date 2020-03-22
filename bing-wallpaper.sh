@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1117
 
+set -e
+set -o pipefail
+
 readonly SCRIPT=$(basename "$0")
 readonly VERSION='0.4.0'
 readonly RESOLUTIONS=(1920x1200 1920x1080 1366x768 800x480 400x240)
