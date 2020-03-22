@@ -37,6 +37,7 @@ Options:
 $(printf "                                     %s\n" ${RESOLUTIONS[@]})
                                  default:
                                      ${RESOLUTION}
+  -m <market>                    The market to query. Defaults to en-US.
   -w --set-wallpaper             Set downloaded picture as wallpaper (Linux only).
   -h --help                      Show this screen.
   --version                      Show version.
@@ -58,9 +59,8 @@ for TOOL in xdg-user-dir curl xmllint; do
 done
 
 # Defaults
-MARKET="de-DE"
 BING_BASE_URL="https://www.bing.com"
-BING_ARCHIVE_URL="${BING_BASE_URL}/HPImageArchive.aspx?format=xml&idx=0&n=1&mkt=$MARKET"
+BING_ARCHIVE_URL="${BING_BASE_URL}/HPImageArchive.aspx?format=xml&idx=0&n=1&mkt=en-US"
 PIC_DIR="$(xdg-user-dir PICTURES)/bing-wallpapers"
 EXTENSION=".jpg"
 
@@ -109,6 +109,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         -w|--set-wallpaper)
             SET_WALLPAPER=true
+            ;;
+        -m|--market)
+            if [[ ! "$2" =~ ^[a-z]{2}-[A-Z]{2}$ ]]; then
+                (>&2 printf "Unknown market.\n")
+                exit 1
+            fi
+            BING_ARCHIVE_URL="${BING_ARCHIVE_URL/&mkt=en-US/&mkt=$2}"
+            shift
             ;;
         --version)
             printf "%s\n" $VERSION
