@@ -79,7 +79,12 @@ while [[ $# -gt 0 ]]; do
             FORCE=true
             ;;
         -b|--boost)
-            BOOST=$(($2-1))
+            BOOST=$(($2))
+            if (( $BOOST < 1 )); then
+                (>&2 printf "Num of pictures has to be greater than zero.\n")
+                exit 1
+            fi
+            BING_ARCHIVE_URL="${BING_ARCHIVE_URL/&n=1/&n=$BOOST}"
             shift
             ;;
         -q|--quiet)
@@ -113,22 +118,26 @@ mkdir -p "${PIC_DIR}"
 
 # Parse bing.com and acquire picture URL(s)
 declare -a PIC_URL_PATHS
-if [ -n "$BOOST" ]; then
-    echo "not supported"
-    exit 1
-else
-    read -a PIC_URL_PATHS < <(curl $CURL_QUIET -L "$BING_ARCHIVE_URL" |
-        xmllint --xpath "//urlBase" - | sed -r "s/<[^>]+>//g")
-fi
+read -a PIC_URL_PATHS < <(curl $CURL_QUIET -L "$BING_ARCHIVE_URL" |
+    xmllint --xpath "//urlBase" - | sed -r "s/<[^>]+>//g" | xargs echo)
 
 PIC_FILE=""
-for PIC_URL_PATH in "${PIC_URL_PATHS[@]}"; do
+PIC_FILE_AS_WALLPAPER=""
+COUNT=0
+for PIC_URL_PATH in ${PIC_URL_PATHS[@]}; do
     if [ -z "$FILENAME" ]; then
-        FILENAME=$(echo "${PIC_URL_PATH%*/}" | sed -r "s/[^A-Za-z0-9_-]+//g")
-        PIC_FILE="$PIC_DIR/${FILENAME}_${RESOLUTION}${EXTENSION}"
+        FILENAME_=$(echo "${PIC_URL_PATH%*/}" | sed -r "s/[^A-Za-z0-9_-]+//g")
+        PIC_FILE="$PIC_DIR/${FILENAME_}_${RESOLUTION}${EXTENSION}"
     else
-        FILENAME="$FILENAME"
         PIC_FILE="$PIC_DIR/${FILENAME}"
+    fi
+
+    # The first picture?
+    #   * If requested, use as wallpaper.
+    #   * Reset FILENAME as it would cause override(s).
+    if (( ++COUNT == 1 )); then
+        PIC_FILE_AS_WALLPAPER="$PIC_FILE"
+        FILENAME=""
     fi
 
     BING_PIC_URL="${BING_BASE_URL}${PIC_URL_PATH}_${RESOLUTION}${EXTENSION}"
@@ -140,6 +149,6 @@ for PIC_URL_PATH in "${PIC_URL_PATHS[@]}"; do
     fi
 done
 
-if [ -n "$SET_WALLPAPER" ] && [ -n "$PIC_FILE" ]; then
-    xsetbg -onroot "$PIC_FILE"
+if [ -n "$SET_WALLPAPER" ] && [ -n "$PIC_FILE_AS_WALLPAPER" ]; then
+    xsetbg -onroot "$PIC_FILE_AS_WALLPAPER"
 fi
