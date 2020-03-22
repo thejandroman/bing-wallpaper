@@ -31,14 +31,14 @@ Options:
                                  the upstream name.
   -p --picturedir <picture dir>  The full path to the picture download dir.
                                  Will be created if it does not exist.
-                                 [default: $HOME/Pictures/bing-wallpapers/]
+                                 Defaults to $PIC_DIR.
   -r --resolution <resolution>   The resolution of the image to retrieve.
                                  Supported resolutions:
 $(printf "                                     %s\n" ${RESOLUTIONS[@]})
                                  default:
                                      ${RESOLUTION}
   -m <market>                    The market to query. Defaults to en-US.
-  -w --set-wallpaper             Set downloaded picture as wallpaper (Linux only).
+  -w --set-wallpaper             Set downloaded picture as wallpaper.
   -h --help                      Show this screen.
   --version                      Show version.
 EOF
@@ -51,7 +51,15 @@ print_message() {
 }
 
 # Lookup some required tools (no core-utils).
-for TOOL in xdg-user-dir curl xmllint; do
+TOOLS=( curl xmllint )
+if [ $(uname) = "Linux" ]; then
+    TOOLS[${#TOOLS[@]}]=xsetbg
+    TOOLS[${#TOOLS[@]}]=xdg-user-dir
+else
+    TOOLS[${#TOOLS[@]}]=osascript
+fi
+
+for TOOL in ${TOOLS[@]}; do
     if ! (which $TOOL &> /dev/null); then
         echo "missing: $TOOL" 1>&2
         exit 1
@@ -61,7 +69,10 @@ done
 # Defaults
 BING_BASE_URL="https://www.bing.com"
 BING_ARCHIVE_URL="${BING_BASE_URL}/HPImageArchive.aspx?format=xml&idx=0&n=1&mkt=en-US"
-PIC_DIR="$(xdg-user-dir PICTURES)/bing-wallpapers"
+PIC_DIR="$HOME/Pictures/bing-wallpapers"
+if [ $(uname) = "Linux" ]; then
+    PIC_DIR="$(xdg-user-dir PICTURES)/bing-wallpapers"
+fi
 EXTENSION=".jpg"
 
 # Option parsing
@@ -172,5 +183,11 @@ for PIC_URL_PATH in ${PIC_URL_PATHS[@]}; do
 done
 
 if [ -n "$SET_WALLPAPER" ] && [ -n "$PIC_FILE_AS_WALLPAPER" ]; then
-    xsetbg -onroot "$PIC_FILE_AS_WALLPAPER"
+    if [ $(uname) = "Linux" ]; then
+        xsetbg -onroot "$PIC_FILE_AS_WALLPAPER"
+    else
+        osascript <<EOF
+tell application "System Events" to set picture of every desktop to ("$PIC_FILE_AS_WALLPAPER" as POSIX file as alias)
+EOF
+    fi
 fi
