@@ -138,6 +138,7 @@ done
 mkdir -p "${PIC_DIR}"
 
 # Parse bing.com and acquire picture URL(s)
+print_message "Downloading: $BING_ARCHIVE_URL"
 declare -a PIC_URL_PATHS
 read -a PIC_URL_PATHS < <(curl $CURL_QUIET -L "$BING_ARCHIVE_URL" |
     xmllint --xpath "//urlBase" - | sed -r "s/<[^>]+>//g" | xargs echo)
