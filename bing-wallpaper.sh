@@ -4,7 +4,7 @@
 set -e
 set -o pipefail
 
-readonly SCRIPT=$(basename "$0")
+readonly SCRIPT=${0##*/}
 readonly VERSION='0.4.0'
 readonly RESOLUTIONS=(1920x1200 1920x1080 1366x768 800x480 400x240)
 RESOLUTION="${RESOLUTIONS[2]}"
