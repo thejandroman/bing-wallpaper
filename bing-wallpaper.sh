@@ -28,7 +28,7 @@ Options:
                                  [default: $HOME/Pictures/bing-wallpapers/]
   -r --resolution <resolution>   The resolution of the image to retrieve.
                                  Supported resolutions:
-$(printf "                                     %s\n" ${RESOLUTIONS[*]})
+$(printf "                                     %s\n" ${RESOLUTIONS[@]})
                                  default:
                                      ${RESOLUTION}
   -w --set-wallpaper             Set downloaded picture as wallpaper (Linux only).
