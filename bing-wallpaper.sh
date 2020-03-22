@@ -136,7 +136,7 @@ for PIC_URL_PATH in "${PIC_URL_PATHS[@]}"; do
         print_message "Downloading: $BING_PIC_URL"
         curl $CURL_QUIET -Lo "$PIC_FILE" "$BING_PIC_URL"
     else
-        print_message "Skipping: $FILENAME..."
+        print_message "Skipping: $BING_PIC_URL..."
     fi
 done
 
