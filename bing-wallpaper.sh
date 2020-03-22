@@ -16,7 +16,6 @@ Usage:
 Options:
   -f --force                     Force download of picture. This will overwrite
                                  the picture if the filename already exists.
-  -s --ssl                       Communicate with bing.com over SSL.
   -b --boost <n>                 Use boost mode. Try to fetch latest <n> pictures.
   -q --quiet                     Do not display log messages.
   -n --filename <file name>      The name of the downloaded picture. Defaults to
@@ -69,9 +68,6 @@ while [[ $# -gt 0 ]]; do
         -f|--force)
             FORCE=true
             ;;
-        -s|--ssl)
-            SSL=true
-            ;;
         -b|--boost)
             BOOST=$(($2-1))
             shift
@@ -101,7 +97,6 @@ done
 
 # Set options
 [ -n "$QUIET" ] && CURL_QUIET='-s'
-[ -n "$SSL" ]   && PROTO='https'   || PROTO='http'
 
 # Create picture directory if it doesn't already exist
 mkdir -p "${PIC_DIR}"
