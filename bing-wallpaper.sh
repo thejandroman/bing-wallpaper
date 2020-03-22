@@ -58,6 +58,13 @@ while [[ $# -gt 0 ]]; do
     case $key in
         -r|--resolution)
             RESOLUTION="$2"
+            PATTERN=" $RESOLUTION "
+            if [[ ! " ${RESOLUTIONS[*]} " =~ "$PATTERN" ]]; then
+                (>&2 printf "Unknown resolution:\n    %s\n" $RESOLUTION)
+                (>&2 printf "Supported resolutions:\n")
+                (>&2 printf "    %s\n" "${RESOLUTIONS[@]}")
+                exit 1
+            fi
             shift
             ;;
         -p|--picturedir)
