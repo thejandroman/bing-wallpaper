@@ -47,8 +47,7 @@ print_message() {
 MARKET="de-DE"
 BING_BASE_URL="https://www.bing.com"
 BING_ARCHIVE_URL="${BING_BASE_URL}/HPImageArchive.aspx?format=xml&idx=0&n=1&mkt=$MARKET"
-DIRNAME="Bilder"
-PIC_DIR="$HOME/$DIRNAME/bing-wallpapers/"
+PIC_DIR="$(xdg-user-dir PICTURES)/bing-wallpapers"
 EXTENSION=".jpg"
 
 # Option parsing
