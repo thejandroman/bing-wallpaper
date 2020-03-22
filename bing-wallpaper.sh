@@ -43,6 +43,14 @@ print_message() {
     fi
 }
 
+# Lookup some required tools (no core-utils).
+for TOOL in xdg-user-dir curl xmllint; do
+    if ! (which $TOOL &> /dev/null); then
+        echo "missing: $TOOL" 1>&2
+        exit 1
+    fi
+done
+
 # Defaults
 MARKET="de-DE"
 BING_BASE_URL="https://www.bing.com"
