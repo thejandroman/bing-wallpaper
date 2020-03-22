@@ -3,7 +3,8 @@
 
 readonly SCRIPT=$(basename "$0")
 readonly VERSION='0.4.0'
-readonly RESOLUTIONS=(1920x1200 1920x1080 800x480 400x240)
+readonly RESOLUTIONS=(1920x1200 1920x1080 1366x768 800x480 400x240)
+RESOLUTION="${RESOLUTIONS[2]}"
 
 usage() {
 cat <<EOF
@@ -24,8 +25,11 @@ Options:
                                  Will be created if it does not exist.
                                  [default: $HOME/Pictures/bing-wallpapers/]
   -r --resolution <resolution>   The resolution of the image to retrieve.
-                                 Supported resolutions: ${RESOLUTIONS[*]}
-  -w --set-wallpaper             Set downloaded picture as wallpaper (Only mac support for now).
+                                 Supported resolutions:
+$(printf "                                     %s\n" ${RESOLUTIONS[*]})
+                                 default:
+                                     ${RESOLUTION}
+  -w --set-wallpaper             Set downloaded picture as wallpaper (Linux only).
   -h --help                      Show this screen.
   --version                      Show version.
 EOF
@@ -37,15 +41,13 @@ print_message() {
     fi
 }
 
-transform_urls() {
-    sed -e "s/\\\//g" | \
-        sed -e "s/[[:digit:]]\{1,\}x[[:digit:]]\{1,\}/$RESOLUTION/" | \
-        tr "\n" " "
-}
-
 # Defaults
-PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
-RESOLUTION="1920x1080"
+MARKET="de-DE"
+BING_BASE_URL="https://www.bing.com"
+BING_ARCHIVE_URL="${BING_BASE_URL}/HPImageArchive.aspx?format=xml&idx=0&n=1&mkt=$MARKET"
+DIRNAME="Bilder"
+PIC_DIR="$HOME/$DIRNAME/bing-wallpapers/"
+EXTENSION=".jpg"
 
 # Option parsing
 while [[ $# -gt 0 ]]; do
@@ -57,7 +59,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -p|--picturedir)
-            PICTURE_DIR="$2"
+            PIC_DIR="$2"
             shift
             ;;
         -n|--filename)
@@ -102,33 +104,34 @@ done
 [ -n "$SSL" ]   && PROTO='https'   || PROTO='http'
 
 # Create picture directory if it doesn't already exist
-mkdir -p "${PICTURE_DIR}"
+mkdir -p "${PIC_DIR}"
 
 # Parse bing.com and acquire picture URL(s)
-read -ra urls < <(curl -sL $PROTO://www.bing.com | \
-    grep -Eo "url\(.*?\)" | \
-    sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
-    transform_urls)
-
+declare -a PIC_URL_PATHS
 if [ -n "$BOOST" ]; then
-    read -ra archiveUrls < <(curl -sL "$PROTO://www.bing.com/HPImageArchive.aspx?format=js&n=$BOOST" | \
-        grep -Eo "url\(.*?\)" | \
-        sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
-        transform_urls)
-    urls=( "${urls[@]}" "${archiveUrls[@]}" )
+    echo "not supported"
+    exit 1
+else
+    read -a PIC_URL_PATHS < <(curl $CURL_QUIET -L "$BING_ARCHIVE_URL" |
+        xmllint --xpath "//urlBase" - | sed -r "s/<[^>]+>//g")
 fi
 
-for p in "${urls[@]}"; do
+PIC_FILE=""
+for PIC_URL_PATH in "${PIC_URL_PATHS[@]}"; do
     if [ -z "$FILENAME" ]; then
-        filename=$(echo "$p" | sed -e 's/.*[?&;]id=\([^&]*\).*/\1/' | grep -oe '[^\.]*\.[^\.]*$')
+        FILENAME=$(echo "${PIC_URL_PATH%*/}" | sed -r "s/[^A-Za-z0-9_-]+//g")
+        PIC_FILE="$PIC_DIR/${FILENAME}_${RESOLUTION}${EXTENSION}"
     else
-        filename="$FILENAME"
+        FILENAME="$FILENAME"
+        PIC_FILE="$PIC_DIR/${FILENAME}"
     fi
-    if [ -n "$FORCE" ] || [ ! -f "$PICTURE_DIR/$filename" ]; then
-        print_message "Downloading: $filename..."
-        curl $CURL_QUIET -Lo "$PICTURE_DIR/$filename" "$p"
+
+    BING_PIC_URL="${BING_BASE_URL}${PIC_URL_PATH}_${RESOLUTION}${EXTENSION}"
+    if [ -n "$FORCE" ] || [ ! -f "$PIC_FILE" ]; then
+        print_message "Downloading: $BING_PIC_URL"
+        curl $CURL_QUIET -Lo "$PIC_FILE" "$BING_PIC_URL"
     else
-        print_message "Skipping: $filename..."
+        print_message "Skipping: $FILENAME..."
     fi
 done
 
