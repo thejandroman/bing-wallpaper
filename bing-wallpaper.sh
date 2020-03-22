@@ -130,8 +130,6 @@ for PIC_URL_PATH in "${PIC_URL_PATHS[@]}"; do
     fi
 done
 
-if [ -n "$SET_WALLPAPER" ]; then
-    /usr/bin/osascript<<END
-tell application "System Events" to set picture of every desktop to ("$PICTURE_DIR/$filename" as POSIX file as alias)
-END
+if [ -n "$SET_WALLPAPER" ] && [ -n "$PIC_FILE" ]; then
+    xsetbg -onroot "$PIC_FILE"
 fi
