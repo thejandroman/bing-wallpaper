@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1117
 
-readonly SCRIPT=$(basename "$0")
-readonly VERSION='0.4.0'
-readonly RESOLUTIONS=(1920x1200 1920x1080 800x480 400x240)
+set -e
+set -o pipefail
+
+readonly SCRIPT=${0##*/}
+readonly VERSION='0.5.0'
+readonly RESOLUTIONS=(1920x1200 1920x1080 1366x768 800x480 400x240)
+RESOLUTION="${RESOLUTIONS[1]}"
+
+on_failure()
+{
+    echo "Some error occured!" 1>&2
+}
+trap on_failure ERR
 
 usage() {
 cat <<EOF
@@ -15,17 +25,20 @@ Usage:
 Options:
   -f --force                     Force download of picture. This will overwrite
                                  the picture if the filename already exists.
-  -s --ssl                       Communicate with bing.com over SSL.
   -b --boost <n>                 Use boost mode. Try to fetch latest <n> pictures.
   -q --quiet                     Do not display log messages.
   -n --filename <file name>      The name of the downloaded picture. Defaults to
                                  the upstream name.
   -p --picturedir <picture dir>  The full path to the picture download dir.
                                  Will be created if it does not exist.
-                                 [default: $HOME/Pictures/bing-wallpapers/]
+                                 Defaults to $PIC_DIR.
   -r --resolution <resolution>   The resolution of the image to retrieve.
-                                 Supported resolutions: ${RESOLUTIONS[*]}
-  -w --set-wallpaper             Set downloaded picture as wallpaper (Only mac support for now).
+                                 Supported resolutions:
+$(printf "                                     %s\n" ${RESOLUTIONS[@]})
+                                 default:
+                                     ${RESOLUTION}
+  -m <market>                    The market to query. Defaults to en-US.
+  -w --set-wallpaper             Set downloaded picture as wallpaper.
   -h --help                      Show this screen.
   --version                      Show version.
 EOF
@@ -37,15 +50,30 @@ print_message() {
     fi
 }
 
-transform_urls() {
-    sed -e "s/\\\//g" | \
-        sed -e "s/[[:digit:]]\{1,\}x[[:digit:]]\{1,\}/$RESOLUTION/" | \
-        tr "\n" " "
-}
+# Lookup some required tools (no core-utils).
+TOOLS=( curl xmllint )
+if [ $(uname) = "Linux" ]; then
+    TOOLS[${#TOOLS[@]}]=xsetbg
+    TOOLS[${#TOOLS[@]}]=xdg-user-dir
+else
+    TOOLS[${#TOOLS[@]}]=osascript
+fi
+
+for TOOL in ${TOOLS[@]}; do
+    if ! (which $TOOL &> /dev/null); then
+        echo "missing: $TOOL" 1>&2
+        exit 1
+    fi
+done
 
 # Defaults
-PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
-RESOLUTION="1920x1080"
+BING_BASE_URL="https://www.bing.com"
+BING_ARCHIVE_URL="${BING_BASE_URL}/HPImageArchive.aspx?format=xml&idx=0&n=1&mkt=en-US"
+PIC_DIR="$HOME/Pictures/bing-wallpapers"
+if [ $(uname) = "Linux" ]; then
+    PIC_DIR="$(xdg-user-dir PICTURES)/bing-wallpapers"
+fi
+EXTENSION=".jpg"
 
 # Option parsing
 while [[ $# -gt 0 ]]; do
@@ -54,10 +82,17 @@ while [[ $# -gt 0 ]]; do
     case $key in
         -r|--resolution)
             RESOLUTION="$2"
+            PATTERN=" $RESOLUTION "
+            if [[ ! " ${RESOLUTIONS[*]} " =~ "$PATTERN" ]]; then
+                (>&2 printf "Unknown resolution:\n    %s\n" $RESOLUTION)
+                (>&2 printf "Supported resolutions:\n")
+                (>&2 printf "    %s\n" "${RESOLUTIONS[@]}")
+                exit 1
+            fi
             shift
             ;;
         -p|--picturedir)
-            PICTURE_DIR="$2"
+            PIC_DIR="$2"
             shift
             ;;
         -n|--filename)
@@ -67,11 +102,13 @@ while [[ $# -gt 0 ]]; do
         -f|--force)
             FORCE=true
             ;;
-        -s|--ssl)
-            SSL=true
-            ;;
         -b|--boost)
-            BOOST=$(($2-1))
+            BOOST=$(($2))
+            if (( $BOOST < 1 )); then
+                (>&2 printf "Num of pictures has to be greater than zero.\n")
+                exit 1
+            fi
+            BING_ARCHIVE_URL="${BING_ARCHIVE_URL/&n=1/&n=$BOOST}"
             shift
             ;;
         -q|--quiet)
@@ -83,6 +120,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         -w|--set-wallpaper)
             SET_WALLPAPER=true
+            ;;
+        -m|--market)
+            if [[ ! "$2" =~ ^[a-z]{2}-[A-Z]{2}$ ]]; then
+                (>&2 printf "Unknown market.\n")
+                exit 1
+            fi
+            BING_ARCHIVE_URL="${BING_ARCHIVE_URL/&mkt=en-US/&mkt=$2}"
+            shift
             ;;
         --version)
             printf "%s\n" $VERSION
@@ -99,41 +144,53 @@ done
 
 # Set options
 [ -n "$QUIET" ] && CURL_QUIET='-s'
-[ -n "$SSL" ]   && PROTO='https'   || PROTO='http'
 
 # Create picture directory if it doesn't already exist
-mkdir -p "${PICTURE_DIR}"
+mkdir -p "${PIC_DIR}"
 
 # Parse bing.com and acquire picture URL(s)
-read -ra urls < <(curl -sL $PROTO://www.bing.com | \
-    grep -Eo "url\(.*?\)" | \
-    sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
-    transform_urls)
+print_message "Downloading: $BING_ARCHIVE_URL"
+declare -a PIC_URL_PATHS
+read -a PIC_URL_PATHS < <(curl $CURL_QUIET -L "$BING_ARCHIVE_URL" |
+    xmllint --xpath "//urlBase" - | sed -r "s/<[^>]+>//g" | xargs echo)
 
-if [ -n "$BOOST" ]; then
-    read -ra archiveUrls < <(curl -sL "$PROTO://www.bing.com/HPImageArchive.aspx?format=js&n=$BOOST" | \
-        grep -Eo "url\(.*?\)" | \
-        sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
-        transform_urls)
-    urls=( "${urls[@]}" "${archiveUrls[@]}" )
-fi
 
-for p in "${urls[@]}"; do
-    if [ -z "$FILENAME" ]; then
-        filename=$(echo "$p" | sed -e 's/.*[?&;]id=\([^&]*\).*/\1/' | grep -oe '[^\.]*\.[^\.]*$')
+PIC_FILE=""
+PIC_FILE_AS_WALLPAPER=""
+
+# Load from oldest to newest picture.
+# This way pictures can be sorted by modification time.
+for (( I=${#PIC_URL_PATHS[@]}; $I>0; I-- )); do
+    PIC_URL_PATH="${PIC_URL_PATHS[(( $I - 1 ))]}"
+
+    # Store last image under given name, if requested.
+    if (( $I == 1 )) && [ -n "$FILENAME" ]; then
+        PIC_FILE="$PIC_DIR/${FILENAME}"
     else
-        filename="$FILENAME"
+        FILENAME_=$(echo "${PIC_URL_PATH%*/}" | sed -r "s/[^A-Za-z0-9_-]+//g")
+        PIC_FILE="$PIC_DIR/${FILENAME_}_${RESOLUTION}${EXTENSION}"
     fi
-    if [ -n "$FORCE" ] || [ ! -f "$PICTURE_DIR/$filename" ]; then
-        print_message "Downloading: $filename..."
-        curl $CURL_QUIET -Lo "$PICTURE_DIR/$filename" "$p"
+
+    # Mark last picture as wallpaper, if requested.
+    if (( $I == 1 )) && [ -n "$SET_WALLPAPER" ] ; then
+        PIC_FILE_AS_WALLPAPER="$PIC_FILE"
+    fi
+
+    BING_PIC_URL="${BING_BASE_URL}${PIC_URL_PATH}_${RESOLUTION}${EXTENSION}"
+    if [ -n "$FORCE" ] || [ ! -f "$PIC_FILE" ]; then
+        print_message "Downloading: $BING_PIC_URL"
+        curl $CURL_QUIET -Lo "$PIC_FILE" "$BING_PIC_URL"
     else
-        print_message "Skipping: $filename..."
+        print_message "Skipping: $BING_PIC_URL..."
     fi
 done
 
-if [ -n "$SET_WALLPAPER" ]; then
-    /usr/bin/osascript<<END
-tell application "System Events" to set picture of every desktop to ("$PICTURE_DIR/$filename" as POSIX file as alias)
-END
+if [ -n "$PIC_FILE_AS_WALLPAPER" ]; then
+    if [ $(uname) = "Linux" ]; then
+        xsetbg -onroot "$PIC_FILE_AS_WALLPAPER"
+    else
+        osascript <<EOF
+tell application "System Events" to set picture of every desktop to ("$PIC_FILE_AS_WALLPAPER" as POSIX file as alias)
+EOF
+    fi
 fi
