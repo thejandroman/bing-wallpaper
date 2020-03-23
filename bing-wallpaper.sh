@@ -154,23 +154,26 @@ declare -a PIC_URL_PATHS
 read -a PIC_URL_PATHS < <(curl $CURL_QUIET -L "$BING_ARCHIVE_URL" |
     xmllint --xpath "//urlBase" - | sed -r "s/<[^>]+>//g" | xargs echo)
 
+
 PIC_FILE=""
 PIC_FILE_AS_WALLPAPER=""
-COUNT=0
-for PIC_URL_PATH in ${PIC_URL_PATHS[@]}; do
-    if [ -z "$FILENAME" ]; then
+
+# Load from oldest to newest picture.
+# This way pictures can be sorted by modification time.
+for (( I=${#PIC_URL_PATHS[@]}; $I>0; I-- )); do
+    PIC_URL_PATH="${PIC_URL_PATHS[(( $I - 1 ))]}"
+
+    # Store last image under given name, if requested.
+    if (( $I == 1 )) && [ -n "$FILENAME" ]; then
+        PIC_FILE="$PIC_DIR/${FILENAME}"
+    else
         FILENAME_=$(echo "${PIC_URL_PATH%*/}" | sed -r "s/[^A-Za-z0-9_-]+//g")
         PIC_FILE="$PIC_DIR/${FILENAME_}_${RESOLUTION}${EXTENSION}"
-    else
-        PIC_FILE="$PIC_DIR/${FILENAME}"
     fi
 
-    # The first picture?
-    #   * If requested, use as wallpaper.
-    #   * Reset FILENAME as it would cause override(s).
-    if (( ++COUNT == 1 )); then
+    # Mark last picture as wallpaper, if requested.
+    if (( $I == 1 )) && [ -n "$SET_WALLPAPER" ] ; then
         PIC_FILE_AS_WALLPAPER="$PIC_FILE"
-        FILENAME=""
     fi
 
     BING_PIC_URL="${BING_BASE_URL}${PIC_URL_PATH}_${RESOLUTION}${EXTENSION}"
@@ -182,7 +185,7 @@ for PIC_URL_PATH in ${PIC_URL_PATHS[@]}; do
     fi
 done
 
-if [ -n "$SET_WALLPAPER" ] && [ -n "$PIC_FILE_AS_WALLPAPER" ]; then
+if [ -n "$PIC_FILE_AS_WALLPAPER" ]; then
     if [ $(uname) = "Linux" ]; then
         xsetbg -onroot "$PIC_FILE_AS_WALLPAPER"
     else
