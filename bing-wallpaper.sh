@@ -107,8 +107,8 @@ mkdir -p "${PICTURE_DIR}"
 
 # Parse bing.com and acquire picture URL(s)
 urls=$(curl -sL $PROTO://www.bing.com | \
-    grep -Eo 'url:".*?"' | \
-    sed -e "s/url:\"\([^']*\)\".*/$PROTO:\/\/bing.com\1/" | \
+    grep --color '<a href="/th' | \
+    sed -e "s#.*<a href=\"\(/th.*jpg\)&amp.*#$PROTO://bing.com\1#" | \
     transform_urls)
 
 if [ -n "$BOOST" ]; then
