@@ -2,7 +2,7 @@
 # shellcheck disable=SC1117
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION='0.4.0'
+readonly VERSION='0.5.0'
 readonly RESOLUTIONS=(1920x1200 1920x1080 800x480 400x240)
 
 usage() {
@@ -133,7 +133,15 @@ for p in "${urls[@]}"; do
 done
 
 if [ -n "$SET_WALLPAPER" ]; then
-    /usr/bin/osascript<<END
+    if [ "$(uname)" = "Linux" ]; then
+        if [ `which wal` -n "" ]; then
+            wal --bg-scale $PICTURE_DIR/$filename
+        else
+            echo "wal is not installed"
+        fi
+    else
+        /usr/bin/osascript<<END
 tell application "System Events" to set picture of every desktop to ("$PICTURE_DIR/$filename" as POSIX file as alias)
 END
+fi
 fi
