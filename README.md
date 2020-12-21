@@ -10,7 +10,7 @@ it to a directory.
 
 The script was tested on:
 
-- Mac OS X 10.8 - 10.12
+- Mac OS X 10.8 - 10.12, 10.15
 - Ubuntu 12.04 - 16.04
 
 How to use?
@@ -43,6 +43,9 @@ Options:
   -h --help                      Show this screen.
   --version                      Show version.
 ```
+Dependencies
+------------
+The script uses [jq](https://stedolan.github.io/jq/) to parse json output from Bing.com. Installation instructions can be found on [jq's download page](https://stedolan.github.io/jq/download/).
 
 Configuration on Mac
 --------------------
