@@ -2,7 +2,7 @@
 # shellcheck disable=SC1117
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION='0.4.0'
+readonly VERSION='0.5.0'
 readonly RESOLUTIONS=(1920x1200 1920x1080 800x480 400x240)
 
 usage() {
@@ -44,8 +44,9 @@ transform_urls() {
 }
 
 # Defaults
-PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
+PICTURE_DIR="$HOME/Pictures/bing-wallpapers"
 RESOLUTION="1920x1080"
+BOOST="1"
 
 # Option parsing
 while [[ $# -gt 0 ]]; do
@@ -71,7 +72,7 @@ while [[ $# -gt 0 ]]; do
             SSL=true
             ;;
         -b|--boost)
-            BOOST=$(($2-1))
+            BOOST="$2"
             shift
             ;;
         -q|--quiet)
@@ -97,6 +98,13 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+# Test for existence of the command jq
+if ! command -v jq &> /dev/null
+then
+    echo "The command jq could not be found. Refer to the readme for how to install jq."
+    exit
+fi
+
 # Set options
 [ -n "$QUIET" ] && CURL_QUIET='-s'
 [ -n "$SSL" ]   && PROTO='https'   || PROTO='http'
@@ -105,18 +113,10 @@ done
 mkdir -p "${PICTURE_DIR}"
 
 # Parse bing.com and acquire picture URL(s)
-read -ra urls < <(curl -sL $PROTO://www.bing.com | \
-    grep -Eo "url\(.*?\)" | \
-    sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
+read -ra urls < <(curl -sL "$PROTO://www.bing.com/HPImageArchive.aspx?format=js&n=$BOOST" | \
+    jq -r '.images | reverse | .[] | .url' | \
+    sed -e "s/\(.*\)/$PROTO:\/\/bing.com\1/" | \
     transform_urls)
-
-if [ -n "$BOOST" ]; then
-    read -ra archiveUrls < <(curl -sL "$PROTO://www.bing.com/HPImageArchive.aspx?format=js&n=$BOOST" | \
-        grep -Eo "url\(.*?\)" | \
-        sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
-        transform_urls)
-    urls=( "${urls[@]}" "${archiveUrls[@]}" )
-fi
 
 for p in "${urls[@]}"; do
     if [ -z "$FILENAME" ]; then
@@ -125,7 +125,7 @@ for p in "${urls[@]}"; do
         filename="$FILENAME"
     fi
     if [ -n "$FORCE" ] || [ ! -f "$PICTURE_DIR/$filename" ]; then
-        print_message "Downloading: $filename..."
+        print_message "Downloading: $filename from $p..."
         curl $CURL_QUIET -Lo "$PICTURE_DIR/$filename" "$p"
     else
         print_message "Skipping: $filename..."
@@ -133,7 +133,8 @@ for p in "${urls[@]}"; do
 done
 
 if [ -n "$SET_WALLPAPER" ]; then
+    print_message "Setting wallpaper to $PICTURE_DIR/$filename"
     /usr/bin/osascript<<END
-tell application "System Events" to set picture of every desktop to ("$PICTURE_DIR/$filename" as POSIX file as alias)
+tell application "System Events" to tell every desktop to set picture to "$PICTURE_DIR/$filename"
 END
 fi
