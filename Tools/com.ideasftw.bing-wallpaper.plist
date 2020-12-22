@@ -8,7 +8,14 @@
 		<array>
 			<string>/bin/bash</string>
 			<string>/Users/username/Pictures/bing-wallpaper.sh</string>
+			<string>-s</string>
+			<string>-w</string>
 		</array>
+		<key>EnvironmentVariables</key>
+		<dict>
+			<key>PATH</key>
+			<string>/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		</dict>
 		<key>LowPriorityIO</key>
 		<true/>
 		<key>Nice</key>
@@ -20,5 +27,9 @@
 			<key>Minute</key>
 			<integer>0</integer>
 		</dict>
+		<key>StandardErrorPath</key>
+		<string>/tmp/bing-wallpaper.err</string>
+		<key>StandardOutPath</key>
+		<string>/tmp/bing-wallpaper.out</string>
 	</dict>
 </plist>
