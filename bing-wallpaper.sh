@@ -108,6 +108,7 @@ mkdir -p "${PICTURE_DIR}"
 read -ra urls < <(curl -sL $PROTO://www.bing.com | \
     grep -Eo "url\(.*?\)" | \
     sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
+    grep -v '&quot' | \
     transform_urls)
 
 if [ -n "$BOOST" ]; then
