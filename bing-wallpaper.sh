@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1117
 
-readonly SCRIPT=$(basename "$0")
+SCRIPT=$(basename "$0")
+readonly SCRIPT
 readonly VERSION='0.4.0'
-readonly RESOLUTIONS=(1920x1200 1920x1080 800x480 400x240)
+readonly RESOLUTIONS=(UHD 1920x1200 1920x1080 800x480 400x240)
 
 usage() {
 cat <<EOF
@@ -45,7 +46,7 @@ transform_urls() {
 
 # Defaults
 PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
-RESOLUTION="1920x1080"
+RESOLUTION="UHD"
 
 # Option parsing
 while [[ $# -gt 0 ]]; do
@@ -106,14 +107,14 @@ mkdir -p "${PICTURE_DIR}"
 
 # Parse bing.com and acquire picture URL(s)
 read -ra urls < <(curl -sL $PROTO://www.bing.com | \
-    grep -Eo "url\(.*?\)" | \
+    grep -Eo "url\(/th.*?\)" | \
     sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
     transform_urls)
 
 if [ -n "$BOOST" ]; then
     read -ra archiveUrls < <(curl -sL "$PROTO://www.bing.com/HPImageArchive.aspx?format=js&n=$BOOST" | \
-        grep -Eo "url\(.*?\)" | \
-        sed -e "s/url(\([^']*\)).*/http:\/\/bing.com\1/" | \
+        grep -Eo "url\":\".*?\"" | \
+        sed -e "s/url\":\"\([^\"]*\).*/http:\/\/bing.com\1/" | \
         transform_urls)
     urls=( "${urls[@]}" "${archiveUrls[@]}" )
 fi
