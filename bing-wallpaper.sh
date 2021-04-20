@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1117
 
-readonly SCRIPT=$(basename "$0")
+SCRIPT=$(basename "$0")
+readonly SCRIPT
 readonly VERSION='0.4.0'
 readonly RESOLUTIONS=(3840x2160 1920x1200 1920x1080 800x480 400x240)
 
