@@ -3,7 +3,7 @@
 
 readonly SCRIPT=$(basename "$0")
 readonly VERSION='0.4.0'
-readonly RESOLUTIONS=(1920x1200 1920x1080 800x480 400x240)
+readonly RESOLUTIONS=(3840x2160 1920x1200 1920x1080 800x480 400x240)
 
 usage() {
 cat <<EOF
@@ -45,7 +45,7 @@ transform_urls() {
 
 # Defaults
 PICTURE_DIR="$HOME/Pictures/bing-wallpapers/"
-RESOLUTION="1920x1080"
+RESOLUTION="3840x2160"
 
 # Option parsing
 while [[ $# -gt 0 ]]; do
